@@ -1,0 +1,4 @@
+body { background: #f8f9fa; }
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1rem; }
+.album-card { background: white; padding: 0.75rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.track-list { list-style: none; padding: 0; }

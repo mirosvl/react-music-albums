@@ -1,0 +1,23 @@
+React Music Albums - PDF description placeholder.
+
+Project: Interactive music albums web application built with React + Vite.
+
+Features:
+- Search albums using Spotify Web API (PKCE auth).
+- View album details and tracks.
+- Save tracks into a local playlist stored in localStorage and reorder via drag-and-drop (react-beautiful-dnd).
+- Styling and components from React Bootstrap + Bootstrap CSS.
+
+Libraries used:
+- react, react-dom, react-router-dom
+- react-bootstrap, bootstrap
+- react-beautiful-dnd
+- axios (optional in code; fetch used in spotify.js)
+
+Auth:
+- Uses Spotify Authorization Code with PKCE (no client secret required in browser).
+- Requires VITE_SPOTIFY_CLIENT_ID and redirect URI configured in Spotify Dashboard.
+
+Screenshots:
+- Include screenshots of Home (search), Album details, Playlist after adding tracks.
+
