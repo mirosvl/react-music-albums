@@ -1,39 +1,61 @@
-import React, { useEffect } from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
-import { Container, Navbar, Nav, Button } from 'react-bootstrap'
-import Home from './pages/Home'
-import Album from './pages/Album'
-import Playlist from './pages/Playlist'
-import { startAuth, handleRedirect } from './services/spotify'
+import React, { useEffect, useState } from 'react';
+import { startAuth, fetchToken, getToken } from './services/spotify';
 
-export default function App(){
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
-    // If redirected back from Spotify with code, handle it
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('code')) {
-      handleRedirect()
+    // Check if Spotify redirected back with code
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    if (code) {
+      fetchToken(code)
+        .then((token) => {
+          console.log('Spotify token received:', token);
+          setIsLoggedIn(true);
+          // Clean URL so ?code=... disappears
+          window.history.replaceState({}, document.title, '/');
+        })
+        .catch((err) => {
+          console.error('Error fetching Spotify token:', err);
+        });
+    } else {
+      // Check if token already exists
+      const existingToken = getToken();
+      if (existingToken) {
+        setIsLoggedIn(true);
+      }
     }
-  }, [])
+  }, []);
 
   return (
-    <>
-      <Navbar bg="dark" variant="dark" expand="lg" className="mb-3">
-        <Container>
-          <Navbar.Brand as={Link} to="/">Music Albums</Navbar.Brand>
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/playlist">Playlist</Nav.Link>
-          </Nav>
-          <Button onClick={startAuth} variant="outline-success">Login with Spotify</Button>
-        </Container>
-      </Navbar>
-      <Container>
-        <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/album/:id" element={<Album/>} />
-          <Route path="/playlist" element={<Playlist/>} />
-        </Routes>
-      </Container>
-    </>
-  )
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Music Albums App</h1>
+      {!isLoggedIn ? (
+        <>
+          <p>Login with Spotify to continue</p>
+          <button
+            type="button"
+            onClick={startAuth}
+            style={{
+              padding: '10px 20px',
+              fontSize: '16px',
+              backgroundColor: '#1DB954',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Login with Spotify
+          </button>
+        </>
+      ) : (
+        <p>You are logged in! Now you can use the app features.</p>
+      )}
+    </div>
+  );
 }
+
+export default App;
