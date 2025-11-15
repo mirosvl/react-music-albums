@@ -1,15 +1,14 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import './styles.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import App from "./shared/App";
+import Callback from "./pages/Callback";
 
-console.log("ENV TEST:", import.meta.env.VITE_SPOTIFY_CLIENT_ID);
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-)
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<App />} />
+      <Route path="/callback" element={<Callback />} />
+    </Routes>
+  </BrowserRouter>
+);

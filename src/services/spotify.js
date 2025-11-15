@@ -1,5 +1,5 @@
 // src/services/spotify.js
-// PKCE Spotify Auth Service
+// PKCE Spotify Auth Service — fixed for persistent login
 
 // Utilities
 function getRandomString(length) {
@@ -31,14 +31,13 @@ function base64urlencode(arrayBuffer) {
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_APP_REDIRECT_URI;
 
-// Test environment variables
 console.log("CLIENT_ID from Vite:", CLIENT_ID);
 console.log("REDIRECT_URI from Vite:", REDIRECT_URI);
 
 // Start login flow
 export async function startAuth() {
   if (!CLIENT_ID || !REDIRECT_URI) {
-    alert('Spotify Client ID or Redirect URI not set.');
+    alert("Spotify Client ID or Redirect URI not set.");
     return;
   }
 
@@ -46,38 +45,41 @@ export async function startAuth() {
   const challengeBuffer = await sha256(code_verifier);
   const code_challenge = base64urlencode(challengeBuffer);
 
-  sessionStorage.setItem('pkce_code_verifier', code_verifier);
+  sessionStorage.setItem("pkce_code_verifier", code_verifier);
 
   const params = new URLSearchParams({
-    response_type: 'code',
+    response_type: "code",
     client_id: CLIENT_ID,
-    scope: 'user-read-private user-read-email',
+    scope: "user-read-private user-read-email",
     redirect_uri: REDIRECT_URI,
-    code_challenge_method: 'S256',
+    code_challenge_method: "S256",
     code_challenge,
   });
 
-  console.log("Full Spotify login URL:", `https://accounts.spotify.com/authorize?${params.toString()}`);
+  console.log(
+    "Full Spotify login URL:",
+    `https://accounts.spotify.com/authorize?${params.toString()}`
+  );
 
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
 // Exchange code for token
 export async function fetchToken(code) {
-  const code_verifier = sessionStorage.getItem('pkce_code_verifier');
-  if (!code_verifier) throw new Error('Code verifier not found in sessionStorage.');
+  const code_verifier = sessionStorage.getItem("pkce_code_verifier");
+  if (!code_verifier) throw new Error("Code verifier not found in sessionStorage.");
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
-    grant_type: 'authorization_code',
+    grant_type: "authorization_code",
     code,
     redirect_uri: REDIRECT_URI,
     code_verifier,
   });
 
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString(),
   });
 
@@ -87,11 +89,11 @@ export async function fetchToken(code) {
   }
 
   const data = await response.json();
-  sessionStorage.setItem('spotify_token', data.access_token);
+  sessionStorage.setItem("spotify_token", data.access_token);
   return data.access_token;
 }
 
-// Helper to get token from sessionStorage
+// Get token from sessionStorage
 export function getToken() {
-  return sessionStorage.getItem('spotify_token');
+  return sessionStorage.getItem("spotify_token");
 }
