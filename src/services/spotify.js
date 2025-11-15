@@ -1,5 +1,5 @@
 // src/services/spotify.js
-// PKCE Spotify Auth Service
+// PKCE Spotify Auth Service — fixed
 
 // Utilities
 function getRandomString(length) {
@@ -29,7 +29,13 @@ function base64urlencode(arrayBuffer) {
 
 // Environment variables
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const REDIRECT_URI = import.meta.env.VITE_APP_REDIRECT_URI;
+let REDIRECT_URI = import.meta.env.VITE_APP_REDIRECT_URI;
+
+// Safety check: if env not set, fallback to hardcoded deployed URL
+if (!REDIRECT_URI || REDIRECT_URI === "VITE_APP_REDIRECT_URI") {
+  console.warn("VITE_APP_REDIRECT_URI not set. Falling back to hardcoded URL.");
+  REDIRECT_URI = "https://react-music-albums2.vercel.app";
+}
 
 // Start login flow
 export async function startAuth() {
@@ -54,6 +60,9 @@ export async function startAuth() {
   });
 
   console.log("Redirect URI used for Spotify login:", REDIRECT_URI);
+  console.log("Full Spotify login URL:", `https://accounts.spotify.com/authorize?${params.toString()}`);
+
+  // Redirect to Spotify login
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
@@ -77,7 +86,8 @@ export async function fetchToken(code) {
   });
 
   if (!response.ok) {
-    throw new Error('Token request failed');
+    const text = await response.text();
+    throw new Error(`Token request failed: ${response.status} ${text}`);
   }
 
   const data = await response.json();

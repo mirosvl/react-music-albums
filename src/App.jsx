@@ -3,13 +3,15 @@ import { startAuth, fetchToken, getToken } from './services/spotify';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true); // loading while checking token
 
   useEffect(() => {
-    // Check if Spotify redirected back with code
+    // Check URL for Spotify code
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
 
     if (code) {
+      // Exchange code for token
       fetchToken(code)
         .then((token) => {
           console.log('Spotify token received:', token);
@@ -19,15 +21,21 @@ function App() {
         })
         .catch((err) => {
           console.error('Error fetching Spotify token:', err);
-        });
+        })
+        .finally(() => setLoading(false));
     } else {
       // Check if token already exists
       const existingToken = getToken();
       if (existingToken) {
         setIsLoggedIn(true);
       }
+      setLoading(false);
     }
   }, []);
+
+  if (loading) {
+    return <p style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</p>;
+  }
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
@@ -52,7 +60,11 @@ function App() {
           </button>
         </>
       ) : (
-        <p>You are logged in! Now you can use the app features.</p>
+        <div>
+          <p>You are logged in! 🎵</p>
+          <p>Now you can access your Music Albums app features.</p>
+          {/* TODO: render your main app screens here */}
+        </div>
       )}
     </div>
   );
