@@ -53,6 +53,7 @@ export async function startAuth() {
     code_challenge,
   });
 
+  console.log("Redirect URI used for Spotify login:", REDIRECT_URI);
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
