@@ -29,7 +29,8 @@ function base64urlencode(arrayBuffer) {
 
 // Environment variables
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-let REDIRECT_URI = import.meta.env.VITE_APP_REDIRECT_URI;
+const REDIRECT_URI = "https://react-music-albums2.vercel.app";
+
 
 // Safety check: if env not set, fallback to hardcoded deployed URL
 if (!REDIRECT_URI || REDIRECT_URI === "VITE_APP_REDIRECT_URI") {
