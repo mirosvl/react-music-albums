@@ -32,6 +32,9 @@ const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const REDIRECT_URI =
   import.meta.env.VITE_APP_REDIRECT_URI || "https://react-music-albums2.vercel.app";
 
+console.log("CLIENT_ID:", import.meta.env.VITE_SPOTIFY_CLIENT_ID);
+console.log("REDIRECT_URI:", import.meta.env.VITE_APP_REDIRECT_URI);
+
 if (!CLIENT_ID) {
   console.error("VITE_SPOTIFY_CLIENT_ID is not set in environment variables.");
 }
