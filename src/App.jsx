@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { startAuth, fetchToken, getToken } from "./services/spotify";
+import React, { useEffect, useState } from 'react';
+import { startAuth, fetchToken, getToken } from './services/spotify';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -7,18 +7,16 @@ function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    const code = params.get('code');
 
     if (code) {
       fetchToken(code)
         .then((token) => {
-          console.log("Spotify token received:", token);
+          console.log('Spotify token received:', token);
           setIsLoggedIn(true);
-          window.history.replaceState({}, document.title, "/");
+          window.history.replaceState({}, document.title, '/');
         })
-        .catch((err) => {
-          console.error("Error fetching Spotify token:", err);
-        })
+        .catch((err) => console.error(err))
         .finally(() => setLoading(false));
     } else {
       const existingToken = getToken();
@@ -27,12 +25,10 @@ function App() {
     }
   }, []);
 
-  if (loading) {
-    return <p style={{ textAlign: "center", marginTop: "50px" }}>Loading...</p>;
-  }
+  if (loading) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</p>;
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>Music Albums App</h1>
       {!isLoggedIn ? (
         <>
@@ -40,23 +36,20 @@ function App() {
           <button
             onClick={startAuth}
             style={{
-              padding: "10px 20px",
-              fontSize: "16px",
-              backgroundColor: "#1DB954",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
+              padding: '10px 20px',
+              fontSize: '16px',
+              backgroundColor: '#1DB954',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
             }}
           >
             Login with Spotify
           </button>
         </>
       ) : (
-        <div>
-          <p>You are logged in! 🎵</p>
-          <p>Now you can access your Music Albums app features.</p>
-        </div>
+        <p>You are logged in! 🎵 Now you can access the app features.</p>
       )}
     </div>
   );
