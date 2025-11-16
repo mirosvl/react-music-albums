@@ -1,17 +1,13 @@
 import React from 'react'
-import { Card, Button } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
 
-export default function AlbumCard({ album }){
-  const img = album.images && album.images[0] ? album.images[0].url : ''
+export default function AlbumCard({ album }) {
   return (
-    <Card className="album-card">
-      {img && <Card.Img variant="top" src={img} alt={album.name} />}
-      <Card.Body>
-        <Card.Title style={{fontSize: '1rem'}}>{album.name}</Card.Title>
-        <Card.Text style={{fontSize: '.85rem'}}>{album.artists?.map(a=>a.name).join(', ')}</Card.Text>
-        <Button as={Link} to={`/album/${album.id}`} size="sm">Open</Button>
-      </Card.Body>
-    </Card>
+    <div className="album-card">
+      {album.images && album.images[0] && (
+        <img src={album.images[0].url} alt={album.name} />
+      )}
+      <h5>{album.name}</h5>
+      <p>{album.artists.map(a => a.name).join(', ')}</p>
+    </div>
   )
 }

@@ -1,99 +1,112 @@
 // src/services/spotify.js
-// PKCE Spotify Auth Service — fixed for persistent login
+// PKCE Spotify Auth + Album Search Service
 
-// Utilities
+// --- Helper functions ---
 function getRandomString(length) {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let text = ''
+  for (let i = 0; i < length; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length))
+  return text
 }
 
 async function sha256(plain) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(plain);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return hash;
+  const encoder = new TextEncoder()
+  const data = encoder.encode(plain)
+  return await crypto.subtle.digest('SHA-256', data)
 }
 
-function base64urlencode(arrayBuffer) {
-  const bytes = new Uint8Array(arrayBuffer);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function base64urlencode(buffer) {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  bytes.forEach(b => (binary += String.fromCharCode(b)))
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-// Environment variables
-const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const REDIRECT_URI = import.meta.env.VITE_APP_REDIRECT_URI;
+// --- Environment variables ---
+const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI
 
-console.log("CLIENT_ID from Vite:", CLIENT_ID);
-console.log("REDIRECT_URI from Vite:", REDIRECT_URI);
-
-// Start login flow
+// --- PKCE Authorization ---
 export async function startAuth() {
   if (!CLIENT_ID || !REDIRECT_URI) {
-    alert("Spotify Client ID or Redirect URI not set.");
-    return;
+    alert('Missing CLIENT_ID or REDIRECT_URI')
+    return
   }
 
-  const code_verifier = getRandomString(128);
-  const challengeBuffer = await sha256(code_verifier);
-  const code_challenge = base64urlencode(challengeBuffer);
+  const code_verifier = getRandomString(128)
+  sessionStorage.setItem('pkce_code_verifier', code_verifier)
 
-  sessionStorage.setItem("pkce_code_verifier", code_verifier);
+  const challenge = await sha256(code_verifier)
+  const code_challenge = base64urlencode(challenge)
 
   const params = new URLSearchParams({
-    response_type: "code",
+    response_type: 'code',
     client_id: CLIENT_ID,
-    scope: "user-read-private user-read-email",
     redirect_uri: REDIRECT_URI,
-    code_challenge_method: "S256",
-    code_challenge,
-  });
+    scope: 'user-read-email user-read-private',
+    code_challenge_method: 'S256',
+    code_challenge
+  })
 
-  console.log(
-    "Full Spotify login URL:",
-    `https://accounts.spotify.com/authorize?${params.toString()}`
-  );
-
-  window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  window.location.href = `https://accounts.spotify.com/authorize?${params}`
 }
 
-// Exchange code for token
+// --- Fetch access token using PKCE ---
 export async function fetchToken(code) {
-  const code_verifier = sessionStorage.getItem("pkce_code_verifier");
-  if (!code_verifier) throw new Error("Code verifier not found in sessionStorage.");
+  const verifier = sessionStorage.getItem('pkce_code_verifier')
+  if (!verifier) throw new Error('Missing PKCE verifier')
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
-    grant_type: "authorization_code",
+    grant_type: 'authorization_code',
     code,
     redirect_uri: REDIRECT_URI,
-    code_verifier,
-  });
+    code_verifier: verifier
+  })
 
-  const response = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: params.toString(),
-  });
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
+  })
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Token request failed: ${response.status} ${text}`);
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error('Token error: ' + text)
   }
 
-  const data = await response.json();
-  sessionStorage.setItem("spotify_token", data.access_token);
-  return data.access_token;
+  const data = await res.json()
+  sessionStorage.setItem('spotify_token', data.access_token)
+  return data.access_token
 }
 
-// Get token from sessionStorage
-export function getToken() {
-  return sessionStorage.getItem("spotify_token");
+// --- Get current token ---
+export const getToken = () => sessionStorage.getItem('spotify_token')
+
+// --- Search albums by query ---
+export async function searchAlbums(query) {
+  const token = getToken()
+  if (!token) throw new Error('Missing Spotify token')
+
+  const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=album`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+  if (!res.ok) throw new Error('Spotify search failed')
+  const data = await res.json()
+  return data.albums.items
+}
+
+// --- Get a single album by ID ---
+export async function getAlbum(id) {
+  const token = getToken()
+  if (!token) throw new Error('Missing Spotify token')
+
+  const res = await fetch(`https://api.spotify.com/v1/albums/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+  if (!res.ok) throw new Error('Spotify getAlbum failed')
+  return res.json()
 }

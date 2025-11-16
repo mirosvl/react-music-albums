@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Form, Row, Col, Button, Card } from 'react-bootstrap'
+import AlbumCard from '../shared/AlbumCard'
 import { getToken, startAuth, searchAlbums } from '../services/spotify'
 
 export default function Home() {

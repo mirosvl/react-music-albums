@@ -43,7 +43,6 @@ export default function Playlist(){
                           <small>{it.artists}</small>
                         </div>
                         <div>
-                          {it.preview_url && <audio controls src={it.preview_url}></audio>}
                           <Button variant="danger" size="sm" className="ms-2" onClick={()=>remove(idx)}>Remove</Button>
                         </div>
                       </div>
