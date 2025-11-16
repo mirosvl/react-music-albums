@@ -1,13 +1,10 @@
-// src/services/spotify.js
 // PKCE Spotify Auth + Album Search Service
 
-// --- Helper functions ---
 function getRandomString(length) {
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let text = ''
-  for (let i = 0; i < length; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
-  return text
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let str = ''
+  for (let i = 0; i < length; i++) str += chars.charAt(Math.floor(Math.random() * chars.length))
+  return str
 }
 
 async function sha256(plain) {
@@ -23,11 +20,9 @@ function base64urlencode(buffer) {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-// --- Environment variables ---
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI
 
-// --- PKCE Authorization ---
 export async function startAuth() {
   if (!CLIENT_ID || !REDIRECT_URI) {
     alert('Missing CLIENT_ID or REDIRECT_URI')
@@ -52,7 +47,6 @@ export async function startAuth() {
   window.location.href = `https://accounts.spotify.com/authorize?${params}`
 }
 
-// --- Fetch access token using PKCE ---
 export async function fetchToken(code) {
   const verifier = sessionStorage.getItem('pkce_code_verifier')
   if (!verifier) throw new Error('Missing PKCE verifier')
@@ -81,32 +75,25 @@ export async function fetchToken(code) {
   return data.access_token
 }
 
-// --- Get current token ---
 export const getToken = () => sessionStorage.getItem('spotify_token')
 
-// --- Search albums by query ---
 export async function searchAlbums(query) {
   const token = getToken()
   if (!token) throw new Error('Missing Spotify token')
-
   const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=album`, {
     headers: { Authorization: `Bearer ${token}` }
   })
-
   if (!res.ok) throw new Error('Spotify search failed')
   const data = await res.json()
   return data.albums.items
 }
 
-// --- Get a single album by ID ---
 export async function getAlbum(id) {
   const token = getToken()
   if (!token) throw new Error('Missing Spotify token')
-
   const res = await fetch(`https://api.spotify.com/v1/albums/${id}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
-
   if (!res.ok) throw new Error('Spotify getAlbum failed')
   return res.json()
 }

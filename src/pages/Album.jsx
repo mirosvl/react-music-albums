@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getAlbum } from '../services/spotify'        // <- Correct import
+import { getAlbum } from '../services/spotify'
 import { Button, Row, Col } from 'react-bootstrap'
 
 export default function Album() {
@@ -20,11 +20,10 @@ export default function Album() {
     existing.push({
       id: track.id,
       name: track.name,
-      preview_url: track.preview_url,
       artists: track.artists.map(a => a.name).join(', ')
     })
     localStorage.setItem('playlist', JSON.stringify(existing))
-    alert('Added to playlist (local storage).')
+    alert('Added to playlist.')
   }
 
   if (!album) return <div>Loading...</div>
